@@ -1,7 +1,5 @@
 # Java Transaction Platform — Week 1, Day 1
 
-Starter repository for an SDET → Java Backend Engineer learning programme.
-
 ## Scope
 
 **Today:** JDK, Maven, IntelliJ, Git/GitHub, running a Java entry point, and one small domain-logic exercise. **No Spring Boot yet.**

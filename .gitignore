@@ -1,0 +1,14 @@
+# Generated Maven artifacts
+target/
+
+# Local IDE configuration
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Operating system and temporary files
+.DS_Store
+*.log
