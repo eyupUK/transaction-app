@@ -86,15 +86,15 @@ Adjust the remote username if your GitHub account uses another login. Authentica
 
 ## Acceptance criteria
 
-- [ ] `java -version` and `javac -version` show JDK 25.
-- [ ] `mvn -version` is 3.9+ and identifies the correct JDK.
-- [ ] IntelliJ can open the existing Maven `pom.xml` project.
-- [ ] `mvn clean verify` succeeds *after the assignment* with 8 or more tests total (1 starter test + 7 policy cases).
-- [ ] `java -cp target/classes io.github.eyupuk.transactions.App` prints the expected line.
-- [ ] `TransferPolicy` uses `long` pence and enforces input validation.
-- [ ] `git status --short` is empty after the final commit.
-- [ ] GitHub has the source, `README.md` and `pom.xml` but not `target/` or `.idea/`.
-- [ ] You can explain in your own words: JDK vs JVM; JAR; `mvn test` vs `mvn package` vs `mvn verify`.
+- [x] `java -version` and `javac -version` show JDK 25.
+- [x] `mvn -version` is 3.9+ and identifies the correct JDK.
+- [x] IntelliJ can open the existing Maven `pom.xml` project.
+- [x] `mvn clean verify` succeeds *after the assignment* with 8 or more tests total (1 starter test + 7 policy cases).
+- [x] `java -cp target/classes io.github.eyupuk.transactions.App` prints the expected line.
+- [x] `TransferPolicy` uses `long` pence and enforces input validation.
+- [x] `git status --short` is empty after the final commit.
+- [x] GitHub has the source, `README.md` and `pom.xml` but not `target/` or `.idea/`.
+- [x] You can explain in your own words: JDK vs JVM; JAR; `mvn test` vs `mvn package` vs `mvn verify`.
 
 ## Reviewer handover
 

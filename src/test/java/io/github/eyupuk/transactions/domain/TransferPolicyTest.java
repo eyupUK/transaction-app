@@ -20,18 +20,10 @@ class TransferPolicyTest {
     +−1p	Constructor call	Throw IllegalArgumentException
      */
 
-    @Test
-    void allowsTransferAtConfiguredMaximum() {
-        TransferPolicy policy = new TransferPolicy(10_000);
-
-        boolean result = policy.allows(10_000);
-
-        assertTrue(result);
-    }
     @ParameterizedTest
-    @ValueSource(ints = {1, 9999, 10000})
-    void allowsTransferAtPositiveCasesAmount(int amount) {
-        TransferPolicy policy = new TransferPolicy(10000);
+    @ValueSource(longs = {1L, 9999L, 10000L})
+    void allowsTransferAtPositiveCasesAmount(long amount) {
+        TransferPolicy policy = new TransferPolicy(10000L);
 
         boolean result = policy.allows(amount);
 
@@ -39,17 +31,17 @@ class TransferPolicyTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {-1, 0})
-    void allowsTransferAtNegativeCasesAmount(int amount) {
-        TransferPolicy policy = new TransferPolicy(10000);
+    @ValueSource(longs = {-1L, 0L})
+    void allowsTransferAtNegativeCasesAmount(long amount) {
+        TransferPolicy policy = new TransferPolicy(10000L);
 
         String errMsg = assertThrows( IllegalArgumentException.class, () -> policy.allows(amount)).getMessage();
         assertEquals("Amount should not be zero or negative!", errMsg);
     }
     @ParameterizedTest
-    @ValueSource(ints = {10001})
-    void allowsTransferAtNegativeCasesExceededAmount(int amount) {
-        TransferPolicy policy = new TransferPolicy(10000);
+    @ValueSource(longs = {10001L})
+    void rejectsTransferExceedingConfiguredMaximum(long amount) {
+        TransferPolicy policy = new TransferPolicy(10000L);
 
         boolean result = policy.allows(amount);
 
@@ -57,8 +49,8 @@ class TransferPolicyTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {-1, 0})
-    void allowsTransferAtNegativeCasesMaxAmount(int maxAmount) {
+    @ValueSource(longs = {-1L, 0L})
+    void allowsTransferAtNegativeCasesMaxAmount(long maxAmount) {
         String errMsg = assertThrows( IllegalArgumentException.class, () -> new TransferPolicy(maxAmount)).getMessage();
         assertEquals("Max amount should not be zero or negative!", errMsg);
     }
