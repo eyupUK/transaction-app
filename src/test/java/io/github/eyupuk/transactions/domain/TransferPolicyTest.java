@@ -46,6 +46,7 @@ class TransferPolicyTest {
         boolean result = policy.allows(amount);
 
         assertFalse(result);
+
     }
 
     @ParameterizedTest
