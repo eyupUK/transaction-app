@@ -62,9 +62,9 @@ public class AccountTest {
         Money withdrawalAmount = Money.of("150.00", "GBP");
         // Act & Assert
 
-        IllegalArgumentException exception =
+        IllegalStateException exception =
                 assertThrows(
-                        IllegalArgumentException.class,
+                        IllegalStateException.class,
                         () -> originalAccount.withdraw(withdrawalAmount)
                 );
 
