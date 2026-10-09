@@ -17,13 +17,19 @@ public record Money(BigDecimal amount, Currency currency) {
             throw new IllegalArgumentException("Unsupported currency: " + currency);
         }
 
-        // TODO 3: Reject amounts requiring rounding.
-        if (amount.scale() > 2) {
-            throw new IllegalArgumentException("Amount requires rounding: " + amount);
-        }
 
         // TODO 2: Normalize the amount to scale 2.
-        amount = amount.setScale(2, RoundingMode.UNNECESSARY);
+        try {
+            amount = amount.setScale(
+                    2, RoundingMode.UNNECESSARY
+            );
+        }
+        // TODO 3: Reject amounts requiring rounding.
+        catch (ArithmeticException e) {
+            throw new IllegalArgumentException(
+                    "Amount requires rounding: " + amount, e
+            );
+        }
     }
 
     public static Money of(
@@ -41,7 +47,6 @@ public record Money(BigDecimal amount, Currency currency) {
         if (!this.currency.equals(other.currency)) {
             throw new IllegalArgumentException("Currency mismatch: " + this.currency + " vs " + other.currency);
         }
-
         // TODO 5: Return a new Money object.
         return new Money(this.amount.add(other.amount), this.currency);
     }

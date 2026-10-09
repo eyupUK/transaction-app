@@ -7,8 +7,7 @@ import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class AccountTest {
 
@@ -62,11 +61,16 @@ public class AccountTest {
         Account originalAccount = new Account(UUID.randomUUID(), Money.of("100.00", "GBP"));
         Money withdrawalAmount = Money.of("150.00", "GBP");
         // Act & Assert
-        try {
-            originalAccount.withdraw(withdrawalAmount);
-        } catch (IllegalArgumentException e) {
-            assertEquals("Insufficient balance: 100.00 GBP vs 150.00 GBP", e.getMessage());
-        }
+
+        IllegalArgumentException exception =
+                assertThrows(
+                        IllegalArgumentException.class,
+                        () -> originalAccount.withdraw(withdrawalAmount)
+                );
+
+        assertTrue(
+                exception.getMessage().contains("Insufficient")
+        );
     }
 
     @DisplayName("Rejects zero and negative deposits")
@@ -77,16 +81,19 @@ public class AccountTest {
         Money zeroDeposit = Money.of("0.00", "GBP");
         Money negativeDeposit = Money.of("-50.00", "GBP");
         // Act & Assert
-        try {
-            originalAccount.deposit(zeroDeposit);
-        } catch (IllegalArgumentException e) {
-            assertEquals("Invalid deposit amount: 0.00 GBP", e.getMessage());
-        }
-        try {
-            originalAccount.deposit(negativeDeposit);
-        } catch (IllegalArgumentException e) {
-            assertEquals("Invalid deposit amount: -50.00 GBP", e.getMessage());
-        }
+        IllegalArgumentException exception1 =
+                assertThrows(
+                        IllegalArgumentException.class,
+                        () -> originalAccount.deposit(zeroDeposit)
+                );
+        assertEquals("Invalid deposit amount: 0.00 GBP", exception1.getMessage());
+
+        IllegalArgumentException exception2 =
+                assertThrows(
+                        IllegalArgumentException.class,
+                        () -> originalAccount.deposit(negativeDeposit)
+                );
+        assertEquals("Invalid deposit amount: -50.00 GBP", exception2.getMessage());
     }
 
     @DisplayName("Rejects currency mismatches and negative starting balances")
@@ -97,20 +104,25 @@ public class AccountTest {
         Money depositAmount = Money.of("50.00", "EUR");
         Money withdrawalAmount = Money.of("30.00", "EUR");
         // Act & Assert
-        try {
-            originalAccount.deposit(depositAmount);
-        } catch (IllegalArgumentException e) {
-            assertEquals("Currency mismatch: GBP vs EUR", e.getMessage());
-        }
-        try {
-            originalAccount.withdraw(withdrawalAmount);
-        } catch (IllegalArgumentException e) {
-            assertEquals("Currency mismatch: GBP vs EUR", e.getMessage());
-        }
-        try {
-            new Account(UUID.randomUUID(), Money.of("-100.00", "GBP"));
-        } catch (IllegalArgumentException e) {
-            assertEquals("Negative starting balance: -100.00 GBP", e.getMessage());
-        }
+        IllegalArgumentException exception1 =
+                assertThrows(
+                        IllegalArgumentException.class,
+                        () -> originalAccount.deposit(depositAmount)
+                );
+        assertEquals("Currency mismatch: GBP vs EUR", exception1.getMessage());
+
+        IllegalArgumentException exception2 =
+                assertThrows(
+                        IllegalArgumentException.class,
+                        () -> originalAccount.withdraw(withdrawalAmount)
+                );
+        assertEquals("Currency mismatch: GBP vs EUR", exception2.getMessage());
+
+        IllegalArgumentException exception3 =
+                assertThrows(
+                        IllegalArgumentException.class,
+                        () -> new Account(UUID.randomUUID(), Money.of("-100.00", "GBP"))
+                );
+        assertEquals("Negative starting balance: -100.00 GBP", exception3.getMessage());
     }
 }

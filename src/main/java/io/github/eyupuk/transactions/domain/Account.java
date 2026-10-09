@@ -44,7 +44,7 @@ public record Account(UUID id, Money balance) {
 
         // TODO 7: Reject insufficient funds.
         if (this.balance.subtract(amount).isNegative()) {
-            throw new IllegalArgumentException("Insufficient balance: " + this.balance.amount() + " " + this.balance.currency() + " vs " + amount.amount() + " " + amount.currency());
+            throw new IllegalStateException("Insufficient balance: " + this.balance.amount() + " " + this.balance.currency() + " vs " + amount.amount() + " " + amount.currency());
         }
 
         // TODO 8: Return a NEW Account.
