@@ -33,6 +33,13 @@ However, long also has limitations:
   For more complex financial calculations, BigDecimal is often preferable, combined with an explicit currency, scale and rounding policy.
 ## 4. Why is the exact maximum allowed?
 Explain the policy boundary and how your test proves it.
+The business requirement specifies that a transfer is allowed when its amount is less than or equal to the configured maximum.
+The comparison uses <= instead of < because the maximum is inclusive.
+For example, when the maximum is 10,000p:
+- 9,999p → allowed
+- 10,000p → allowed
+- 10,001p → rejected
+  The boundary test proves that a transfer exactly equal to the maximum is accepted and helps prevent an off-by-one error.
 
 ## 5. What is the difference between input validation and a rejected transfer?
 Explain exception for malformed amount versus valid amount above maximum.

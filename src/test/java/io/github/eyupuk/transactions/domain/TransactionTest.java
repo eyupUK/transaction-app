@@ -15,7 +15,15 @@ public class TransactionTest {
     @DisplayName("Creates a valid transaction")
     @Test
     void testCreateValidTransaction() {
-        new Transaction(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), Money.of("100.00", "GBP"), Instant.now());
+        UUID id = UUID.randomUUID();
+        UUID sourceAccountId = UUID.randomUUID();
+        UUID destinationAccountId = UUID.randomUUID();
+        Money amount = Money.of("100.00", "GBP");
+        Instant createdAt = Instant.now();
+        Transaction transaction = new Transaction(id, sourceAccountId, destinationAccountId, amount, createdAt);
+        assertEquals(sourceAccountId, transaction.sourceAccountId());
+        assertEquals(destinationAccountId, transaction.destinationAccountId());
+        assertEquals(amount, transaction.amount());
     }
 
     @DisplayName("Rejects equal source and destination IDs")
