@@ -38,6 +38,8 @@ public final class TransactionAnalytics {
     public static Map<Currency, BigDecimal> totalsByCurrency(
             List<Transaction> transactions) {
 
+        Objects.requireNonNull(transactions, "transactions");
+
         // TODO 2
         return transactions.stream()
                 .collect(Collectors.groupingBy(
@@ -54,16 +56,24 @@ public final class TransactionAnalytics {
             Currency currency,
             int limit) {
 
+        Objects.requireNonNull(transactions, "transactions");
+        Objects.requireNonNull(currency, "currency");
+        if (limit < 0) {
+            throw new IllegalArgumentException("limit must be non-negative");
+        }
+
         // TODO 3
         return transactions.stream()
                 .filter(t -> t.amount().currency().equals(currency))
-                .sorted(Comparator.comparing((Transaction t) -> t.amount().amount()).reversed())
+                .sorted(Comparator.comparing((Transaction t) -> t.amount().amount()).reversed()
+                        .thenComparing(Comparator.comparing(Transaction::createdAt).reversed()))
                 .limit(limit)
                 .toList();
     }
 
     public static Set<UUID> duplicateTransactionIds(
             List<Transaction> transactions) {
+        Objects.requireNonNull(transactions, "transactions");
 
         // TODO 4
         return transactions.stream()
