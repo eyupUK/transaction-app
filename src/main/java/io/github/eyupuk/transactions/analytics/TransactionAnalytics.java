@@ -28,6 +28,8 @@ public final class TransactionAnalytics {
     public static Map<UUID, Long> outgoingCounts(
             List<Transaction> transactions) {
 
+        Objects.requireNonNull(transactions, "transactions");
+
         // TODO 1
         return transactions.stream()
                 .collect(Collectors.groupingBy(
@@ -58,6 +60,7 @@ public final class TransactionAnalytics {
 
         Objects.requireNonNull(transactions, "transactions");
         Objects.requireNonNull(currency, "currency");
+
         if (limit < 0) {
             throw new IllegalArgumentException("limit must be non-negative");
         }
@@ -66,7 +69,8 @@ public final class TransactionAnalytics {
         return transactions.stream()
                 .filter(t -> t.amount().currency().equals(currency))
                 .sorted(Comparator.comparing((Transaction t) -> t.amount().amount()).reversed()
-                        .thenComparing(Comparator.comparing(Transaction::createdAt).reversed()))
+                        .thenComparing(Comparator.comparing(Transaction::createdAt).reversed())
+                        .thenComparing(Transaction::id))
                 .limit(limit)
                 .toList();
     }
