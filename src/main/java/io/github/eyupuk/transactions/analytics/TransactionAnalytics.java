@@ -30,7 +30,6 @@ public final class TransactionAnalytics {
 
         Objects.requireNonNull(transactions, "transactions");
 
-        // TODO 1
         return transactions.stream()
                 .collect(Collectors.groupingBy(
                         Transaction::sourceAccountId,
@@ -42,7 +41,6 @@ public final class TransactionAnalytics {
 
         Objects.requireNonNull(transactions, "transactions");
 
-        // TODO 2
         return transactions.stream()
                 .collect(Collectors.groupingBy(
                         t -> t.amount().currency(),
@@ -65,7 +63,6 @@ public final class TransactionAnalytics {
             throw new IllegalArgumentException("limit must be non-negative");
         }
 
-        // TODO 3
         return transactions.stream()
                 .filter(t -> t.amount().currency().equals(currency))
                 .sorted(Comparator.comparing((Transaction t) -> t.amount().amount()).reversed()
@@ -79,7 +76,6 @@ public final class TransactionAnalytics {
             List<Transaction> transactions) {
         Objects.requireNonNull(transactions, "transactions");
 
-        // TODO 4
         return transactions.stream()
                 .collect(Collectors.groupingBy(
                         Transaction::id,

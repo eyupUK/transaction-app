@@ -68,7 +68,6 @@ class TransactionAnalyticsTest {
         );
     }
 
-    // TODO: Write tests for the other methods.
     @DisplayName("Unknown account returns an empty list")
     @Test
     void unknownAccountReturnsEmptyList() {
