@@ -8,8 +8,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.time.Instant;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TransactionTest {
     @DisplayName("Creates a valid transaction")
@@ -30,23 +29,26 @@ public class TransactionTest {
     @Test
     void testRejectsEqualSourceAndDestinationIds() {
         UUID accountId = UUID.randomUUID();
-        try {
+
+        IllegalArgumentException exc = assertThrows(IllegalArgumentException.class, () -> {
             new Transaction(UUID.randomUUID(), accountId, accountId, Money.of("100.00", "GBP"), Instant.now());
-        } catch (IllegalArgumentException e) {
-            assertEquals("Cannot transfer to the same account: " + accountId, e.getMessage());
-        }
+        });
+
+        assertEquals("Cannot transfer to the same account: " + accountId, exc.getMessage());
     }
 
     @DisplayName("Rejects zero or negative transaction amounts")
     @Test
     void testRejectsZeroOrNegativeTransactionAmounts() {
-        assertThrows(IllegalArgumentException.class, () -> {
+        IllegalArgumentException exc1 = assertThrows(IllegalArgumentException.class, () -> {
             new Transaction(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), Money.of("0.00", "GBP"), Instant.now());
         });
+        assertEquals("Invalid transaction amount: 0.00", exc1.getMessage());
 
-        assertThrows(IllegalArgumentException.class, () -> {
+        IllegalArgumentException exc2 = assertThrows(IllegalArgumentException.class, () -> {
             new Transaction(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), Money.of("-10.00", "GBP"), Instant.now());
         });
+        assertEquals("Invalid transaction amount: -10.00", exc2.getMessage());
     }
 
     @DisplayName("Rejects null values for required fields")
