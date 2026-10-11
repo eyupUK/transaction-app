@@ -103,11 +103,16 @@ class TransactionAnalyticsTest {
     @DisplayName("Correct outgoing counts for accounts A, B and C")
     @Test
     void correctOutgoingCounts() {
-        List<Transaction> transactions = sampleTransactions();
 
-        assertEquals(3, TransactionAnalytics.outgoingFrom(transactions, A).size());
-        assertEquals(1, TransactionAnalytics.outgoingFrom(transactions, B).size());
-        assertEquals(1, TransactionAnalytics.outgoingFrom(transactions, C).size());
+        Map<UUID, Long> result =
+                TransactionAnalytics.outgoingCounts(
+                        sampleTransactions()
+                );
+
+        assertEquals(
+                Map.of(A, 3L, B, 1L, C, 1L),
+                result
+        );
     }
 
     @DisplayName("Empty list returns an empty map")
@@ -130,6 +135,7 @@ class TransactionAnalyticsTest {
         assertEquals(new BigDecimal("170.75"), result.get(Currency.getInstance("GBP")));
         assertEquals(new BigDecimal("85.00"), result.get(Currency.getInstance("EUR")));
     }
+
     @DisplayName("Empty list returns an empty map")
     @Test
     void emptyListReturnsEmptyMapForTotalsByCurrency() {
@@ -167,6 +173,31 @@ class TransactionAnalyticsTest {
         assertEquals(transactions.get(2), result.get(0));
         assertEquals(transactions.get(1), result.get(1));
     }
+
+
+    @Test
+    @DisplayName("Equal amounts and timestamps are sorted by ID")
+    void sortsEqualAmountsAndTimestampsById() {
+        Transaction highId = transaction(
+                900, A, B, "50.00", "GBP",
+                "2026-10-01T10:00:00Z"
+        );
+
+        Transaction lowId = transaction(
+                800, A, C, "50.00", "GBP",
+                "2026-10-01T10:00:00Z"
+        );
+
+        List<Transaction> result =
+                TransactionAnalytics.topTransfers(
+                        List.of(highId, lowId),
+                        Currency.getInstance("GBP"),
+                        2
+                );
+
+        assertEquals(List.of(lowId, highId), result);
+    }
+
 
     @DisplayName("Zero limit returns an empty list")
     @Test
