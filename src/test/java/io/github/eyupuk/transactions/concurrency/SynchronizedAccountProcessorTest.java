@@ -5,6 +5,8 @@ import io.github.eyupuk.transactions.domain.Account;
 import io.github.eyupuk.transactions.domain.Money;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -157,8 +159,9 @@ class SynchronizedAccountProcessorTest {
     }
 
     @DisplayName("Zero and negative deposits or withdrawals are rejected")
-    @Test
-    void zeroAndNegativeDepositsOrWithdrawalsAreRejected() {
+    @ParameterizedTest(name = "amount={0}")
+    @ValueSource(strings = {"0.00", "-10.00"})
+    void zeroAndNegativeDepositsOrWithdrawalsAreRejected(String amount) {
         Account opening = new Account(
                 UUID.randomUUID(),
                 Money.of("100.00", "GBP")
@@ -168,19 +171,11 @@ class SynchronizedAccountProcessorTest {
                 new SynchronizedAccountProcessor(opening);
 
         assertThrows(IllegalArgumentException.class, () -> {
-            processor.deposit(Money.of("0.00", "GBP"));
+            processor.deposit(Money.of(amount, "GBP"));
         });
 
         assertThrows(IllegalArgumentException.class, () -> {
-            processor.deposit(Money.of("-10.00", "GBP"));
-        });
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            processor.withdraw(Money.of("0.00", "GBP"));
-        });
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            processor.withdraw(Money.of("-10.00", "GBP"));
+            processor.withdraw(Money.of(amount, "GBP"));
         });
     }
 
@@ -292,7 +287,7 @@ class SynchronizedAccountProcessorTest {
     */
     @DisplayName("40 simultaneous £1 withdrawals from £20 account results in 20 successes and 20 rejections")
     @Test
-    void fortySimultaneousWithdrawalsFromTwentyAccount() {
+    void fortySimultaneousWithdrawalsFromTwentyAccount() throws Exception {
         Account opening = new Account(
                 UUID.randomUUID(),
                 Money.of("20.00", "GBP")
@@ -310,31 +305,40 @@ class SynchronizedAccountProcessorTest {
                     processor.withdraw(Money.of("1.00", "GBP"));
                     return true;
                 } catch (IllegalStateException e) {
+                    assertTrue(e.getMessage().contains("Insufficient"));
                     return false;
                 }
             }));
         }
 
+
         executor.shutdown();
+
         try {
-            executor.awaitTermination(1, TimeUnit.MINUTES);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            assertTrue(
+                    executor.awaitTermination(1, TimeUnit.MINUTES),
+                    "Executor did not terminate within one minute"
+            );
+
+            int successCount = 0;
+
+            for (Future<Boolean> future : results) {
+                if (future.get(5, TimeUnit.SECONDS)) {
+                    successCount++;
+                }
+            }
+
+            assertEquals(20, successCount);
+
+            assertEquals(
+                    Money.of("0.00", "GBP"),
+                    processor.snapshot().balance()
+            );
+
+        } finally {
+            executor.shutdownNow();
         }
 
-        long successCount = results.stream().filter(future -> {
-            try {
-                return future.get();
-            } catch (InterruptedException | ExecutionException e) {
-                return false;
-            }
-        }).count();
-
-        assertEquals(20, successCount);
-        assertEquals(
-                Money.of("0.00", "GBP"),
-                processor.snapshot().balance()
-        );
 
     }
 }
