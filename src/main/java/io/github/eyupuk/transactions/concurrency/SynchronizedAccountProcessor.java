@@ -30,7 +30,7 @@ public final class SynchronizedAccountProcessor {
         }
 
         // TODO 3: Return the updated account.
-        return current;
+        return updated;
     }
 
     public synchronized Account withdraw(Money amount) {
@@ -47,7 +47,7 @@ public final class SynchronizedAccountProcessor {
         }
 
         // TODO 7: Return the updated account.
-        return current;
+        return updated;
     }
 
 }
