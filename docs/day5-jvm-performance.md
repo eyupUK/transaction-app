@@ -1,3 +1,63 @@
+# Day 5 — JVM Memory and Garbage Collection Investigation
+
+**Date:** 14 October 2026  
+**Project:** Java Transaction Platform  
+**JVM:** G1 Garbage Collector, `-Xms64m`, `-Xmx128m`  
+**Tools:** Java Flight Recorder (JFR), GC logs, `jcmd`
+
+## 1. Objective
+
+Investigate how allocation rate and object retention affect Java heap usage and garbage collection behaviour.
+
+Two controlled workloads were executed: temporary object allocation and intentional object retention.
+
+## 2. Experiment Setup
+
+| Measurement | Temporary | Retained |
+|---|---:|---:|
+| Arrays created | 10,000 | 1,200 |
+| Array size | 32 KiB | 32 KiB |
+| Total array payload allocated | 312.5 MiB | 37.5 MiB |
+| Arrays intentionally retained | 0 | 1,200 |
+
+The temporary workload did not preserve references to the created arrays, allowing them to become eligible for garbage collection.
+
+The retained workload stored array references in a static collection, keeping them strongly reachable.
+
+## 3. GC Observations
+
+| Metric | Temporary | Retained |
+|---|---:|---:|
+| JFR GC events | 9 | 4 |
+| Young GC events | 9 | 3 |
+| Old GC events | 0 | 1 |
+| Reserved heap | 128 MiB | 128 MiB |
+| Committed heap at exit | 67 MiB | 75 MiB |
+| Used heap at exit | 22.4 MiB | 45.3 MiB |
+
+### Temporary Allocation
+
+Nine G1 young-generation collections were recorded.
+
+One collection reported:
+
+`42M -> 4M (67M), 0.152 ms`
+
+This shows substantial memory reclamation during a young-generation GC.
+
+The temporary workload created approximately 312.5 MiB of array payload, yet the heap used at JVM exit was approximately 22.4 MiB.
+
+### Retained Allocation
+
+Three G1 young collections and one G1 old event were recorded.
+
+The young collections included:
+
+- GC(0): 36 MiB → 21 MiB
+- GC(1): 34 MiB → 34 MiB
+- GC(2): 43 MiB → 43
+
+
 step 1
 ```bash
 mvn clean verify
@@ -37,7 +97,7 @@ target/jvm/
 └── retained.jfr
 ```
 
-step 4 
+step 4
 ```bash
 jfr summary target/jvm/temporary.jfr
 jfr summary target/jvm/retained.jfr
@@ -84,4 +144,21 @@ step 8
 ```bash
 jcmd <PID> GC.heap_info
 jcmd <PID> Thread.print
+```
+
+GC Logs
+```aiignore
+tail -n 25 target/jvm/temporary-gc.log
+tail -n 25 target/jvm/retained-gc.log
+```
+1. Comparison of your actual GC results
+```
+Measurement	                            Temporary	        Retained
+JFR GC events	                                9	            4
+G1 young GC events	                        9	            3
+G1 old GC events	                        0	            1
+Longest reported GC pause	                1.74 ms	            2.81 ms
+Shortest reported young GC pause	        0.143 ms	    0.474 ms
+Total array payload created by the code	        312.5 MiB	    37.5 MiB
+Arrays deliberately retained	                0	            1,200
 ```
