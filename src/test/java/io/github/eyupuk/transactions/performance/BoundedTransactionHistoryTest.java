@@ -8,6 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.*;
@@ -132,21 +133,31 @@ public class BoundedTransactionHistoryTest {
                 Thread.currentThread().interrupt();
             }
         };
-        executor.submit(recordTask);
-        executor.submit(recordTask);
-        executor.submit(recordTask);
-        executor.submit(recordTask);
+
+        List<Future<?>> futures = new ArrayList<>();
+
+        for (int i = 0; i < 4; i++) {
+            futures.add(executor.submit(recordTask));
+        }
+
         latch.countDown();
         executor.shutdown();
+
         try {
+            for (Future<?> future : futures) {
+                future.get(5, TimeUnit.SECONDS);
+            }
+
             assertTrue(
-                    executor.awaitTermination(1, TimeUnit.MINUTES),
-                    "Executor did not terminate within one minute"
+                    executor.awaitTermination(5, TimeUnit.SECONDS)
             );
-        }
-        finally {
+
+            assertEquals(3, history.snapshot().size());
+
+        } finally {
             executor.shutdownNow();
         }
+
         List<Transaction> snapshot = history.snapshot();
         assertTrue(snapshot.size() <= 3);
     }

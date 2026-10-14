@@ -37,10 +37,6 @@ public final class MemoryLab {
         List<byte[]> kept = new ArrayList<>();
 
         long start = System.nanoTime();
-        System.out.println("Allocating " + allocations
-                + " objects of "
-                + bytesPerAllocation + " bytes each"
-        );
 
         for (int i = 0; i < allocations; i++) {
             byte[] data = new byte[bytesPerAllocation];
@@ -55,23 +51,9 @@ public final class MemoryLab {
 
         // Keep retained objects reachable for inspection.
         retainedData = List.copyOf(kept);
-        System.out.println("Retained " + retainedData.size() + " objects");
-        System.out.println(retainedData);
 
         double elapsedMs =
                 (System.nanoTime() - start) / 1_000_000.0;
-
-        System.out.println("Mode: " + mode);
-        System.out.println("Allocations: " + allocations);
-        System.out.println(
-                "Objects retained: " + retainedData.size()
-        );
-        System.out.println("Checksum: " + checksum);
-        System.out.printf(
-                "Allocation loop: %.2f ms%n", elapsedMs
-        );
-
-        System.out.println("Ready for JVM inspection");
 
         // Pause for diagnostic attachment only.
         // Never use sleeps to make concurrency tests pass.
