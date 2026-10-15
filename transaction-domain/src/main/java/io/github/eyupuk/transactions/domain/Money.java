@@ -75,6 +75,5 @@ public record Money(BigDecimal amount, Currency currency) {
         // Return zero monetary value for the supplied currency.
         // Reuse existing validation rather than duplicating it.
         return new Money(BigDecimal.ZERO.setScale(2), Currency.getInstance(currencyCode));
-
     }
 }
