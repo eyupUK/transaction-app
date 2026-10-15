@@ -12,3 +12,4 @@ target/
 # Operating system and temporary files
 .DS_Store
 *.log
+**/effective-pom.xml
