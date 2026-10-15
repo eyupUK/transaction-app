@@ -76,4 +76,31 @@ public class MoneyTest {
         assertTrue(negative.isNegative());
         assertFalse(negative.isPositive());
     }
+
+    /*
+        public static Money zero(String currencyCode) {
+        // Return zero monetary value for the supplied currency.
+        // Reuse existing validation rather than duplicating it.
+        return new Money(BigDecimal.ZERO.setScale(2), Currency.getInstance(currencyCode));
+    }
+     */
+    @Test
+    void createsZeroValueForSupportedCurrency() {
+        Money zeroGbp = Money.zero("GBP");
+        assertEquals(Money.of("0.00", "GBP"), zeroGbp);
+    }
+
+    @Test
+    void rejectsZeroValueForUnsupportedCurrency() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            Money.zero("JPY");
+        });
+    }
+    @Test
+    void rejectsZeroValueForNullCurrency() {
+        assertThrows(NullPointerException.class, () -> {
+            Money.zero(null);
+        });
+    }
+
 }
