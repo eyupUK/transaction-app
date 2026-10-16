@@ -10,6 +10,9 @@ A small Java project for exploring domain modelling, financial validation rules,
   - `Transaction` represents a transfer with source and destination account IDs, amount, and timestamp. It validates required data and rejects invalid amounts and self-transfers.
   - `TransferPolicy` applies a maximum-transfer rule using whole-pence values.
 - `transaction-application` contains the application entry point and supporting examples:
+  - `AccountService` applies deposits, withdrawals, and balance lookups through the `AccountRepository` abstraction, delegating account rules to the domain model.
+  - `InMemoryAccountRepository` provides a thread-safe in-memory implementation with atomic account updates.
+  - `BackendDemo` wires the service to the in-memory repository and demonstrates deposits, withdrawals, and balance queries.
   - `TransactionAnalytics` provides stream-based reporting for outgoing transfers, totals by currency, top transfers, and duplicate transaction IDs.
   - `UnsafeAccountStore` and `SynchronizedAccountProcessor` demonstrate unsynchronized and synchronized state updates.
   - `BoundedTransactionHistory` stores a capacity-limited, synchronized history and returns independent snapshots.
@@ -44,6 +47,16 @@ Expected output:
 Java transaction platform: ready
 ```
 
+## Run the account service demo
+
+After building, run the demo to exercise account deposits and withdrawals through the application service and in-memory repository:
+
+```bash
+java -cp transaction-domain/target/classes:transaction-application/target/classes io.github.eyupuk.transactions.BackendDemo
+```
+
+The demo prints the updated balance after a £25 deposit and the final balance after a £40 withdrawal from an account opened with £100.
+
 ## Run the memory lab
 
 The memory lab accepts `temporary` or `retained` as its mode. The temporary mode allocates short-lived arrays; the retained mode keeps references to its arrays for inspection. With no argument, it uses `temporary`.
@@ -67,7 +80,9 @@ transaction-application/
   pom.xml
   src/main/java/io/github/eyupuk/transactions/
     analytics/
+    application/
     concurrency/
+    infrastructure/
     performance/
   src/test/java/io/github/eyupuk/transactions/
     analytics/
