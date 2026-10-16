@@ -75,10 +75,10 @@ public class InMemoryAccountRepositoryTest {
 
         AccountService service = new AccountService(repository);
 
-        assertThrows(NoSuchElementException.class, () -> {
+        assertThrows(IllegalStateException.class, () -> {
             service.deposit(opening.id(), Money.of("50.00", "GBP"));
             // Attempt to update with a different UUID
-            repository.update(UUID.randomUUID(), account -> new Account(UUID.randomUUID(), account.balance()));
+            repository.update(opening.id(), account -> new Account(UUID.randomUUID(), account.balance()));
         });
 
     }
@@ -114,7 +114,7 @@ public class InMemoryAccountRepositoryTest {
      */
     @DisplayName("40 simultaneous £1 deposits into £0 finish at £40")
     @Test
-    void simultaneousDeposits() throws InterruptedException{
+    void simultaneousDeposits() throws Exception{
         Account opening = new Account(
                 UUID.randomUUID(),
                 Money.of("0.00", "GBP")
@@ -142,17 +142,25 @@ public class InMemoryAccountRepositoryTest {
             }));
         }
 
-        latch.countDown(); // Signal all tasks to start
+        try {
+            latch.countDown();
 
-        // Wait for all tasks to complete and check for exceptions
-        for (Future<?> future : futures) {
-            try {
-                future.get(5, TimeUnit.SECONDS); // Wait with a timeout
-            } catch (ExecutionException e) {
-                fail("Task failed with exception: " + e.getCause());
-            } catch (TimeoutException e) {
-                fail("Task timed out");
+            for (Future<?> future : futures) {
+                future.get(5, TimeUnit.SECONDS);
             }
+
+            executor.shutdown();
+
+            assertTrue(
+                    executor.awaitTermination(5, TimeUnit.SECONDS)
+            );
+
+            assertEquals(
+                    Money.of("40.00", "GBP"),
+                    service.getBalance(opening.id())
+            );
+        } finally {
+            executor.shutdownNow();
         }
 
         executor.shutdown();

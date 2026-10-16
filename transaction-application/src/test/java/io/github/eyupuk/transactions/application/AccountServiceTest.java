@@ -124,7 +124,7 @@ public class AccountServiceTest {
 
 
         assertThrows(IllegalArgumentException.class, () -> {
-            Money withdrawal = Money.of("150.00", "USD");
+            Money withdrawal = Money.of("150.00", "EUR");
             service.withdraw(opening.id(), withdrawal);
         });
 
