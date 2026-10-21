@@ -150,6 +150,8 @@ WHERE transfer_id = '21000000-0000-0000-0000-000000000001';
 
 These checks establish the observed posting balance. The schema's constraints enforce valid individual entries and one entry per transfer/type; the transfer transaction supplies the matching debit and credit pair.
 
+The database schema does not independently enforce ledger balancing for every writer. It does not require every transfer to have two equal postings, or every account balance change to have matching ledger entries. Writers can bypass the transfer script while still satisfying the existing row constraints. Consistency therefore depends on invoking the transfer logic correctly. This is acceptable for the learning exercise; a production payment platform needs stronger enforcement of these invariants and controlled write access.
+
 ## Failed transfers and rollback
 
 Each validation case started from a fresh fixture reset. Temporary copies of the transfer script changed only the indicated input. In interactive psql, run the copy through `END $$;`, omitting the final `COMMIT;`, so the failed transaction can be inspected before `ROLLBACK`.
@@ -174,7 +176,21 @@ After each error, `SELECT 1;` returned SQLSTATE **`25P02`**, indicating an abort
 
 ### Failure after writes
 
-To check rollback after the balances and ledger had already changed, a temporary copy inserted the following immediately before step 8, inside the `DO` block:
+The standalone [failure test](../db/day11-failure-test.sql) reproduces rollback after both account updates and the ledger insert. Reset the fixtures, then run it from the repository root:
+
+```bash
+docker compose exec -T db \
+  psql -X -U transaction_user -d transaction_db \
+  -v ON_ERROR_STOP=1 < db/day11-setup.sql
+
+docker compose exec -T db \
+  psql -X -U transaction_user -d transaction_db \
+  -v VERBOSITY=verbose -v ON_ERROR_STOP=0 < db/day11-failure-test.sql
+```
+
+`ON_ERROR_STOP=0` lets this intentional error be followed by the script's explicit `ROLLBACK` and state queries. Confirm the expected notice, error and query results below; psql's exit status alone does not establish that this experiment passed.
+
+The script mirrors the transfer through the ledger insert, then runs the following inside the `DO` block before the transfer could be marked complete:
 
 ```sql
 RAISE NOTICE 'before abort: Alice=%, Bob=%, transfers=%, ledger_entries=%',
@@ -199,6 +215,48 @@ The notice reported **Alice=20.00, Bob=280.00, transfers=1, ledger_entries=2** i
 This verified that the pending transfer, both account updates, version increments and both ledger entries were undone together. No `FAILED` transfer row was retained by this script.
 
 Repeating the unchanged GBP 80.00 script after a successful run raised `Insufficient funds`, because Alice then had GBP 20.00. A separate attempt using GBP 10.00 with the same transfer ID reached the insert and raised unique-violation SQLSTATE **`23505`**. After rollback, both attempts preserved the previously committed balances, versions, single transfer and two ledger entries.
+
+## SAVEPOINT experiment
+
+Run this standalone experiment in a fresh transaction in psql. It touches only a temporary table and does not modify the financial accounts.
+
+```sql
+BEGIN;
+
+CREATE TEMP TABLE day11_savepoint_lab (
+    id INTEGER PRIMARY KEY,
+    amount INTEGER NOT NULL
+) ON COMMIT DROP;
+
+INSERT INTO day11_savepoint_lab
+VALUES (1, 100);
+
+-- First successful change
+UPDATE day11_savepoint_lab
+SET amount = 110
+WHERE id = 1;
+
+SAVEPOINT before_second_update;
+
+-- Second change, which we will undo
+UPDATE day11_savepoint_lab
+SET amount = 999
+WHERE id = 1;
+
+ROLLBACK TO SAVEPOINT before_second_update;
+
+SELECT amount
+FROM day11_savepoint_lab
+WHERE id = 1;
+
+-- Observed: 110
+
+ROLLBACK;
+```
+
+The query returned **110** on PostgreSQL 17.11. The insert of `100` and the first update to `110` happened before the savepoint, so both survived `ROLLBACK TO SAVEPOINT`. The later update to `999` was undone. The result is therefore `110`, rather than the original `100` or the undone `999`.
+
+Rolling back to the savepoint leaves the outer transaction open and preserves its earlier work. The final `ROLLBACK` discards the whole experiment, including creation of the temporary table. `ON COMMIT DROP` would also remove the table if the transaction ended with `COMMIT` instead.
 
 ## Two-session lock behaviour
 
