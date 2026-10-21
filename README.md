@@ -90,6 +90,8 @@ docker compose exec -T db \
 
 For query-performance experiments, `db/day9-performance-data.sql` creates a larger dataset. The `db/day10-covering-index.sql` and `db/day10-partial-index.sql` files define the experimental indexes, and `db/day10-explain-queries.sql` runs their baseline and indexed query comparisons. See the [Day 10 analysis](docs/day10-index-analysis.md#reproduce-the-experiments) for the run commands and measured results. The performance guides and reports are under `docs/`; run data-loading scripts only after creating the schema.
 
+See the [Day 11 transactions investigation](docs/day11-transactions.md) for atomic transfers, ledger checks, rollback and savepoint experiments, row locking, isolation levels, and the schema's ledger-balancing limitation.
+
 ## Project layout
 
 ```text
