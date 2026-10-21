@@ -15,6 +15,26 @@ The investigation compares execution plans, query execution times, buffer access
 - **High-value pending transactions for account 42:** 11
 - **Measurement tool:** `EXPLAIN (ANALYZE, BUFFERS)`
 
+### Reproduce the experiments
+
+Start the local PostgreSQL container, create the schema and load the sample rows using the [README setup steps](../README.md#postgresql-exercises). From the repository root, load the performance dataset and run the [EXPLAIN script](../db/day10-explain-queries.sql):
+
+```bash
+docker compose exec -T db \
+  psql -X -U transaction_user -d transaction_db \
+  -v ON_ERROR_STOP=1 < db/day9-performance-data.sql
+
+docker compose exec -T db \
+  psql -X -a -U transaction_user -d transaction_db \
+  -v ON_ERROR_STOP=1 < db/day10-explain-queries.sql
+```
+
+Use a local development database with no additional transfer indexes beyond those defined by the schema and Day 10 scripts. The script drops and recreates both Day 10 indexes so it can be rerun. It measures account history before and after creating the covering index, then high-value pending transfers before and after creating the partial index, with the covering index retained for the partial-index baseline. It also reports index sizes.
+
+Run with autocommit because the script uses `VACUUM (ANALYZE)` to refresh statistics and the visibility map. Execution times, buffer counts, index sizes and planner choices can vary with the PostgreSQL version, cache state and local data; the tables below retain the original measured results.
+
+GitHub Actions currently runs `mvn -B -ntp clean verify` to verify the Java build and JUnit tests. These SQL experiments are run manually and are not covered by CI. PostgreSQL-backed integration tests are future work.
+
 ## 3. Covering Index Experiment
 
 **Query:** Retrieve the 20 most recent outgoing transfers for a specific account.
