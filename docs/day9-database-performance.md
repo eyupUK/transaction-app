@@ -1,3 +1,12 @@
+Seed the database with a large number of transfers to test performance.
+
+```bash
+docker compose exec -T db \
+  psql -U transaction_user -d transaction_db \
+  -v ON_ERROR_STOP=1 < db/day9-performance-data.sql
+```
+
+
 EXPLAIN
 This shows PostgreSQL's estimated execution plan without executing the query.
 
