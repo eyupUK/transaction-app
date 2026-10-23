@@ -35,6 +35,12 @@ class JdbcTransferServiceTest {
     @BeforeEach
     void createAccounts() throws SQLException {
         connections = JdbcTestDatabase.fromEnvironment();
+
+        // Clean up previous test data, if any, before seeding new accounts
+        if (alice != null && bob != null) {
+            deleteTestRecords();
+        }
+
         service = new JdbcTransferService(connections);
         alice = UUID.randomUUID();
         bob = UUID.randomUUID();
